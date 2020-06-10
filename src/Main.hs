@@ -1,7 +1,7 @@
 module Main where
 
 import Ivory.Language
-import Iv
+-- import Iv
 
 -- puts :: Def ('[IString] :-> Sint32)
 -- puts  = importProc "puts" "stdio.h"
