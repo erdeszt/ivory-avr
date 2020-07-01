@@ -21,3 +21,4 @@ executable ivory-avr
                      , ivory
                      , ivory-backend-c
                      , ivory-hw
+                     , ivory-artifact
