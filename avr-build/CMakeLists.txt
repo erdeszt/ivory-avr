@@ -17,6 +17,6 @@ endif()
 
 project(IvoryAVR VERSION 1.0)
 
-include_directories("ivory-out")
+include_directories("../ivory-out")
 
-add_executable(Firmware ivory-out/firmware.c)
+add_executable(Firmware ../ivory-out/firmware.c)
