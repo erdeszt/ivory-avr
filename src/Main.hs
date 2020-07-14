@@ -81,21 +81,7 @@ reg_PORTB = mkBitDataReg (0x05 + 0x20)
 
 delayInit :: Def ('[] :-> ())
 delayInit = proc "delay_init" $ body $ do
-    setReg reg_TCCR1A $ do
-        clearBit com1a1
-        clearBit com1a0
-        clearBit com1b1
-        clearBit com1b0
-        clearBit wgm11
-        clearBit wgm10
     setReg reg_TCCR1B $ do
-        clearBit icnc1
-        clearBit ices1
-        clearBit wgm13
-        clearBit wgm12
-        clearBit cs12
-        clearBit cs11
-        clearBit cs10
         setBit cs10
     retVoid
 
