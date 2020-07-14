@@ -3,8 +3,8 @@
 set -x
 
 SPEED=""
-PORT=${2:-ttyS3}
-TARGET=${3:-Firmware}
+TARGET=${2:-Firmware}
+PORT=${3:-ttyS3}
 
 if [ -z "$1" ]; then
   echo "Provide a model: uno|nano"
@@ -20,4 +20,4 @@ else
   fi
 fi
 
-avrdude -Cavrdude.conf -v -patmega328p -carduino -P/dev/ttyS3 -b${SPEED} -D -Uflash:w:avr-build/${TARGET}.hex:i
+avrdude -Cavrdude.conf -v -patmega328p -carduino -P/dev/${PORT} -b${SPEED} -D -Uflash:w:avr-build/${TARGET}.hex:i

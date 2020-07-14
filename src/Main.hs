@@ -19,36 +19,47 @@ import GHC.TypeNats
 [ivory|
 
 bitdata DDRB :: Bits 8 = ddrb
-    { ddrb0 :: Bit
-    , ddrb1 :: Bit
-    , ddrb2 :: Bit
-    , ddrb3 :: Bit
-    , ddrb4 :: Bit
-    , ddrb5 :: Bit
+    { ddrb7 :: Bit
     , ddrb6 :: Bit
-    , ddrb7 :: Bit
+    , ddrb5 :: Bit
+    , ddrb4 :: Bit
+    , ddrb3 :: Bit
+    , ddrb2 :: Bit
+    , ddrb1 :: Bit
+    , ddrb0 :: Bit
     }
 
 bitdata PORTB :: Bits 8 = portb
-    { portb0 :: Bit
-    , portb1 :: Bit
-    , portb2 :: Bit
-    , portb3 :: Bit
-    , portb4 :: Bit
-    , portb5 :: Bit
+    { portb7 :: Bit
     , portb6 :: Bit
-    , portb7 :: Bit
+    , portb5 :: Bit
+    , portb4 :: Bit
+    , portb3 :: Bit
+    , portb2 :: Bit
+    , portb1 :: Bit
+    , portb0 :: Bit
+    }
+
+bitdata TCCR1A :: Bits 8 = tccr1a
+    { com1a1 :: Bit
+    , com1a0 :: Bit
+    , com1b1 :: Bit
+    , com1b0 :: Bit
+    , _      :: Bit
+    , _      :: Bit
+    , wgm11  :: Bit
+    , wgm10  :: Bit
     }
 
 bitdata TCCR1B :: Bits 8 = tccr1b
-    { cs10 :: Bit
-    , cs11 :: Bit
-    , cs12 :: Bit
-    , wgm12 :: Bit
-    , _     :: Bit
-    , wgm13 :: Bit
+    { icnc1 :: Bit
     , ices1 :: Bit
-    , icnc1 :: Bit
+    , wgm13 :: Bit
+    , _     :: Bit
+    , wgm12 :: Bit
+    , cs12  :: Bit
+    , cs11  :: Bit
+    , cs10  :: Bit
     }
 
 |]
@@ -56,43 +67,60 @@ bitdata TCCR1B :: Bits 8 = tccr1b
 reg_TCNT1 :: Reg Uint16
 reg_TCNT1 = mkReg 0x84
 
+reg_TCCR1A :: BitDataReg TCCR1A
+reg_TCCR1A = mkBitDataReg 0x80
+
 reg_TCCR1B :: BitDataReg TCCR1B
 reg_TCCR1B = mkBitDataReg 0x81
 
 reg_DDRB :: BitDataReg DDRB
-reg_DDRB = mkBitDataReg 0x04
+reg_DDRB = mkBitDataReg (0x04 + 0x20)
 
 reg_PORTB :: BitDataReg PORTB
-reg_PORTB = mkBitDataReg 0x05
+reg_PORTB = mkBitDataReg (0x05 + 0x20)
 
 delayInit :: Def ('[] :-> ())
 delayInit = proc "delay_init" $ body $ do
-    modifyReg reg_TCCR1B $ do
-      setBit cs10
+    setReg reg_TCCR1A $ do
+        clearBit com1a1
+        clearBit com1a0
+        clearBit com1b1
+        clearBit com1b0
+        clearBit wgm11
+        clearBit wgm10
+    setReg reg_TCCR1B $ do
+        clearBit icnc1
+        clearBit ices1
+        clearBit wgm13
+        clearBit wgm12
+        clearBit cs12
+        clearBit cs11
+        clearBit cs10
+        setBit cs10
     retVoid
 
 delayMS :: Def ('[Ix 10000] :-> ())
 delayMS = proc "delay" $ \interval -> body $ do
-    writeReg reg_TCNT1 0
     interval `times` \_ -> do
-      maxLoopCount `times` \_ -> do
-        counterValue <- readReg reg_TCNT1
-        ifte_ (counterValue >? 16000) breakOut (return ())
+        writeReg reg_TCNT1 0
+        maxLoopCount `times` \_ -> do
+            counterValue <- readReg reg_TCNT1
+            ifte_ (counterValue >=? 16000) breakOut (return ())
     retVoid
   where
     maxLoopCount :: Ix 100000
-    maxLoopCount = 100000
+    maxLoopCount = 10000
 
 mainProc :: Def ('[] :-> ())
 mainProc = proc "main" $ body $ do
     call_ delayInit
-    modifyReg reg_DDRB $ do
+    setReg reg_DDRB $ do
         setBit ddrb1
     forever $ do
-        modifyReg reg_PORTB $ do
+        setReg reg_PORTB $ do
             setBit portb1
         call_ delayMS 1000
-        modifyReg reg_PORTB $ do
+        setReg reg_PORTB $ do
             clearBit portb1
         call_ delayMS 1000
     retVoid
