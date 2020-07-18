@@ -4,3 +4,4 @@ pushd build/out
 DEBUG=1 cmake ../avr
 DEBUG=1 make
 popd
+build/hex Firmware
