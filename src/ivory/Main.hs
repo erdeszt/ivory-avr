@@ -13,6 +13,8 @@ import Ivory.HW
 import Ivory.Language
 import GHC.TypeNats
 
+import System.Directory --TMP
+
 -- TODO:
 -- constexpr u8 SFR_OFFSET = __AVR_ARCH__ >= 100 ? 0x00 : 0x20;
 -- Assumed to be 0 for now
@@ -121,8 +123,10 @@ mainModule = package "firmware" $ do
 main :: IO ()
 main = do
   runCompiler [mainModule] hw_artifacts options
+  cwd <- getCurrentDirectory
+  putStrLn cwd
   return ()
   where
     options = initialOpts
-        { outDir = Just "ivory-out"
+        { outDir = Just "build/ivory"
         }

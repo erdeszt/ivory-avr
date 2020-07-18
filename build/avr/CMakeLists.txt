@@ -13,6 +13,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNING_FLAGS} ${AVR_FLAGS} ${OPTIMIZATION
 
 project(IvoryAVR VERSION 1.0)
 
-include_directories("../ivory-out")
+include_directories("../ivory")
 
-add_executable(Firmware ../ivory-out/firmware.c)
+add_executable(Firmware ../ivory/firmware.c)

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+avr-as -o build/out/$1 src/asm/$1.asm
+./build/hex $1

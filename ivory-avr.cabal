@@ -14,7 +14,7 @@ cabal-version:       >=1.10
 extra-source-files:  README.md
 
 executable ivory-avr
-  hs-source-dirs:      src
+  hs-source-dirs:      src/ivory
   main-is:             Main.hs
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -22,3 +22,4 @@ executable ivory-avr
                      , ivory-backend-c
                      , ivory-hw
                      , ivory-artifact
+                     , directory

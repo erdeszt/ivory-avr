@@ -20,4 +20,4 @@ else
   fi
 fi
 
-avrdude -Cavrdude.conf -v -patmega328p -carduino -P/dev/${PORT} -b${SPEED} -D -Uflash:w:avr-build/${TARGET}.hex:i
+avrdude -Cbuild/avrdude.conf -v -patmega328p -carduino -P/dev/${PORT} -b${SPEED} -D -Uflash:w:build/out/${TARGET}.hex:i
