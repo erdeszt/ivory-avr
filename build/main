@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -ex
+
+if [ "$1" = "--full" ]; then
+    stack build
+    stack exec ivory-avr
+fi
+
 pushd build/out
 DEBUG=1 cmake ../avr
 DEBUG=1 make

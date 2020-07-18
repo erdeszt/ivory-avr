@@ -1,6 +1,15 @@
 # ivory-avr
 
-## Build:
+## Dependencies
+
+ * simavr, libsimavr-dev
+ * gcc-avr, binutils-avr
+ * avrdude
+ * gcc
+ * cmake
+ * stack
+
+## Build
 
 ### Main firmware
 ```
@@ -24,7 +33,7 @@
 > build/sim
 ```
 
-# Upload
+## Upload
 ```
-> build/upload nano|uno [hex file=Firmware] [tty=/dev/ttyS3]
+> build/upload nano|uno [hex file=Firmware] [port=/dev/ttyS3]
 ```

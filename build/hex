@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -x
+set -ex
 
 TARGET=${1:-Firmware}
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -x
+set -ex
 
 SPEED=""
 TARGET=${2:-Firmware}
