@@ -9,8 +9,19 @@
 #include <sim_gdb.h>
 #include <sim_vcd_file.h>
 
+avr_t *avr = NULL;
+avr_vcd_t vcd_file;
+
 int main(void)
 {
+    elf_firmware_t f;
+    const char *file_name = "build/simulation/out/Simulation";
+
+    elf_read_firmware(file_name, &f);
+
+    printf("firmware: %s f=%d mmcu=%s\n", file_name, (int)f.frequency, f.mmcu);
+
+
     printf("YO\n");
 
     return 0;
