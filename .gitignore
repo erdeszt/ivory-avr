@@ -1,7 +1,6 @@
 .stack-work
 .idea
 *.iml
-out
-ivory-out
-avr-build/*
-!avr-build/CMakeLists.txt
+build/out
+build/simulation/out
+build/ivory
