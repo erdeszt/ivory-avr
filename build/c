@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-avr-gcc -o ./build/out/$1 -mmcu=atmega328p -DF_CPU=16000000UL -fno-exceptions -fno-asynchronous-unwind-tables -Os -save-temps --verbose-asm -Wall src/c/$1.c
+pushd build/out
+avr-gcc -o $1 -mmcu=atmega328p -DF_CPU=16000000UL -fno-exceptions -fno-asynchronous-unwind-tables -Os -save-temps --verbose-asm -Wall ../../src/c/$1.c
+popd
 ./build/hex $1
