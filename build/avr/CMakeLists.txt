@@ -8,7 +8,7 @@ set(CMAKE_C_STANDARD 99)
 set(WARNING_FLAGS "-Wall -W -pedantic -Wextra -Wshadow -Wpointer-arith -Wconversion")
 set(AVR_FLAGS "-mmcu=atmega328p -DF_CPU=16000000UL -fno-exceptions -fno-asynchronous-unwind-tables")
 set(OPTIMIZATION_FLAGS "-Os")
-set(DEBUG_FLAGS "-save-temps --verbose-asm")
+set(DEBUG_FLAGS "-save-temps --verbose-asm -g")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNING_FLAGS} ${AVR_FLAGS} ${OPTIMIZATION_FLAGS} ${DEBUG_FLAGS}")
 
 project(IvoryAVR VERSION 1.0)
