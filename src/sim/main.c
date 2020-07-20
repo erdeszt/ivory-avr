@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #include <sim_avr.h>
+#include <avr_ioport.h>
 #include <avr_twi.h>
 #include <sim_elf.h>
 #include <sim_gdb.h>
@@ -15,7 +16,7 @@ avr_vcd_t vcd_file;
 int main(void)
 {
     elf_firmware_t f;
-    const char *file_name = "build/simulation/out/Simulation";
+    const char *file_name = "build/out/Firmware";
 
     elf_read_firmware(file_name, &f);
 

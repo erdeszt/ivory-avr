@@ -3,6 +3,6 @@
 set -ex
 
 pushd build/simulation/out
-cmake ../
-make
+DEBUG=1 cmake ../
+DEBUG=1 make
 popd
