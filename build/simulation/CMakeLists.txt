@@ -23,15 +23,6 @@ include_directories("../../../simavr/simavr/sim")
 include_directories("../../../simavr/simavr/cores")
 include_directories("/usr/include/simavr")
 
-# link_directories("../../../simavr/simavr/obj-x86_64-linux-gnu")
-
-# find_library(SIM_AVR
-#     NAMES sim_elf
-#     PATHS "../../../simavr/simavr/obj-x86_64-linux-gnu"
-# )
-
-# add_library(SIM_AVR STATIC)
-
 add_executable(Simulation
     "${SRC}/main.c"
     "${SIMAVR_CORES}/sim_mega328.c"
