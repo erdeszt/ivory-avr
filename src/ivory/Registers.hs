@@ -5,7 +5,7 @@
 
 module Registers where
 
-import Ivory.Language ( ivory, Bit, Bits, Uint16 )
+import Ivory.Language ( ivory, Bit, Bits, Uint16, Uint8 )
 
 import Ivory.HW ( mkBitDataReg, mkReg, BitDataReg, Reg )
 
@@ -58,6 +58,28 @@ bitdata TCCR1B :: Bits 8 = tccr1b
     , cs10  :: Bit
     }
 
+bitdata UCSR0B :: Bits 8 = ucsr0b
+    { rxcie0 :: Bit
+    , txcie0 :: Bit
+    , udrie0 :: Bit
+    , rxen0  :: Bit
+    , txen0  :: Bit
+    , ucsz02 :: Bit
+    , rxb80  :: Bit
+    , txb80  :: Bit
+    }
+
+bitdata UCSR0C :: Bits 8 = ucsr0c
+    { umsel01 :: Bit
+    , umsel00 :: Bit
+    , upm01   :: Bit
+    , upm00   :: Bit
+    , usbs0   :: Bit
+    , ucsz01  :: Bit
+    , ucsz00  :: Bit
+    , ucpol0  :: Bit
+    }
+
 |]
 
 reg_DDRB :: BitDataReg DDRB
@@ -72,5 +94,20 @@ reg_TCCR1A = mkBitDataReg 0x80
 reg_TCCR1B :: BitDataReg TCCR1B
 reg_TCCR1B = mkBitDataReg 0x81
 
+reg_UCSR0B :: BitDataReg UCSR0B
+reg_UCSR0B = mkBitDataReg 0xC1
+
+reg_UCSR0C :: BitDataReg UCSR0C
+reg_UCSR0C = mkBitDataReg 0xC2
+
 reg_TCNT1 :: Reg Uint16
 reg_TCNT1 = mkReg 0x84
+
+reg_UBRR0H :: Reg Uint8
+reg_UBRR0H = mkReg 0xC5
+
+reg_UBRR0L :: Reg Uint8
+reg_UBRR0L = mkReg 0xC4
+
+reg_UDR0 :: Reg Uint8
+reg_UDR0 = mkReg 0xC6

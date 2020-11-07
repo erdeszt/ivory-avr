@@ -11,8 +11,7 @@ import Registers ( cs10, reg_TCCR1B, reg_TCNT1 )
 
 delayInit :: Def ('[] :-> ())
 delayInit = proc "delay_init" $ body $ do
-    setReg reg_TCCR1B $ do
-        setBit cs10
+    setReg reg_TCCR1B (setBit cs10)
     retVoid
 
 delayMS :: Def ('[Ix 10000] :-> ())

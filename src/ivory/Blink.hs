@@ -23,4 +23,3 @@ blinkMain = proc "main" $ body $ do
         setReg reg_PORTB $ do
             clearBit portb1
         call_ delayMS 1000
-    retVoid

@@ -24,3 +24,4 @@ executable ivory-avr
                      , ivory-hw
                      , ivory-artifact
                      , directory
+                     , serialport
