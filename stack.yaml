@@ -40,6 +40,7 @@ extra-deps:
 - ivory-backend-c-0.1.0.8
 - ivory-opts-0.1.0.6
 - ivory-hw-0.1.0.6
+- ivory-stdlib-0.1.0.5
 - monadLib-3.7.3
 - th-abstraction-0.2.11.0
 - serialport-0.4.7

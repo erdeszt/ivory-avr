@@ -14,6 +14,7 @@ import GHC.TypeNats ()
 import Blink ( blinkMain )
 import Delay ( delayInit, delayMS )
 import Registers
+import AvrRegisterGenerator
 
 serialTxMain :: Def ('[] :-> ())
 serialTxMain = proc "main" $ body $ do
@@ -42,9 +43,13 @@ mainModule = package "firmware" $ do
     incl delayMS
     incl serialTxMain
 
+
+
 main :: IO ()
 main = do
     runCompiler [mainModule] hw_artifacts options
+    -- registerDefs <- avrRegisterParser "iom328p.h"
+    -- TextIO.putStrLn (Text.unlines registerDefs)
     return ()
   where
     options = initialOpts

@@ -23,5 +23,11 @@ executable ivory-avr
                      , ivory-backend-c
                      , ivory-hw
                      , ivory-artifact
+                     , ivory-stdlib
                      , directory
                      , serialport
+                     , text
+                     , containers
+                     , attoparsec
+                     , bytestring
+                     , vector

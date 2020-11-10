@@ -40,6 +40,13 @@ packages:
   original:
     hackage: ivory-hw-0.1.0.6
 - completed:
+    hackage: ivory-stdlib-0.1.0.5@sha256:b486cb07f25b0cadb1f51fb67435e41a248223c0b30ccd3fad575b93e7f97d9f,1348
+    pantry-tree:
+      size: 765
+      sha256: de0bbe08cc2c748b476b96584efbf4b6a699131f210461dad908ccd630b0e31c
+  original:
+    hackage: ivory-stdlib-0.1.0.5
+- completed:
     hackage: monadLib-3.7.3@sha256:3ffd5229638985bfd8b861e7bad0afa643d65cefe110f8d7d619989beb7a6f3e,980
     pantry-tree:
       size: 426
