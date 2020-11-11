@@ -1,7 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module AvrRegisterGenerator where
 
@@ -41,11 +38,17 @@ data RegisterDecl = RegisterDecl Label RegType Location
 data Register = Register RegisterDecl (Map BitLocation Label)
     deriving (Show, Eq)
 
-data ParserState
+data ParserPhase
   = Skip
-  | Reg RegisterDecl
+  | End
   | RegBit RegisterDecl (Map BitLocation Label)
   deriving (Show, Eq)
+
+data ParserState = ParserState { phase :: ParserPhase, registers :: Vector Register }
+    deriving (Show)
+
+data ParserError = RegBitWithoutRegDecl (Vector Register) (Label, BitLocation)
+    deriving (Show)
 
 parseRegisterDecl :: Parser RegisterDecl
 parseRegisterDecl = do
@@ -54,10 +57,10 @@ parseRegisterDecl = do
     label <- Label <$> takeTill isSpace
     skipSpace
     regType <- choice
-        [ (string "_SFR_IO8" *> pure IO8)
-        , (string "_SFR_IO16" *> pure IO16)
-        , (string "_SFR_MEM8" *> pure MEM8)
-        , (string "_SFR_MEM16" *> pure MEM16)
+        [ string "_SFR_IO8" *> pure IO8
+        , string "_SFR_IO16" *> pure IO16
+        , string "_SFR_MEM8" *> pure MEM8
+        , string "_SFR_MEM16" *> pure MEM16
         ]
     char '('
     string "0x"
@@ -77,17 +80,56 @@ parseRegisterBitLocation = do
 parseDefinition :: Parser (Either RegisterDecl (Label, BitLocation))
 parseDefinition = (Left <$> parseRegisterDecl) <|> (Right <$> parseRegisterBitLocation)
 
--- TODO:
--- Fill out empty bits
--- separate by SFR_IO vs SFR_MEM 8 vs 16 bit
-avrRegisterParser :: FilePath -> IO (Vector Register)
-avrRegisterParser inputFile = do
-    lines <- filter (Text.isPrefixOf "#define") <$> Text.lines <$> TextIO.readFile inputFile
-    -- foldl'
-    return Vector.empty
+-- NOTE: Everything after the first interrupt vector definition is ignored
+avrRegisterParser :: Text -> Either ParserError (Vector Register)
+avrRegisterParser rawInput = do
+    let lines = tail $ filter (Text.isPrefixOf "#define") (Text.lines rawInput)
+    let parseResult = foldl' propagateParseErrors (Right (ParserState Skip Vector.empty)) lines
+    registers <$> parseResult
+  where
+    propagateParseErrors state line = state >>= (`parseLines` line)
+    parseLines :: ParserState -> Text -> Either ParserError ParserState
+    parseLines (ParserState phase regs) line = do
+        let parseResult = parseOnly parseDefinition line
+        case (phase, parseResult, Text.isInfixOf "vect" line) of
+            (_, _, True) ->
+                Right (ParserState End regs)
+            (End, _, _) ->
+                Right (ParserState End regs)
+            (Skip, Left _, _) ->
+                Right (ParserState Skip regs)
+            (Skip, Right (Left regDecl), _) ->
+                Right (ParserState (RegBit regDecl Map.empty) regs)
+            (Skip, Right (Right regBit), _) ->
+                Left (RegBitWithoutRegDecl regs regBit)
+            (RegBit reg bits, Left _, _) -> do
+                let regs' = Vector.snoc regs (Register reg bits)
+                Right (ParserState Skip regs')
+            (RegBit reg bits, Right (Left regDecl), _) -> do
+                let regs' = Vector.snoc regs (Register reg bits)
+                let phase' = RegBit regDecl Map.empty
+                Right (ParserState phase' regs')
+            (RegBit reg bits, Right (Right (label, location)), _) -> do
+                let bits' = Map.insert location label bits
+                let phase' = RegBit reg bits'
+                Right (ParserState phase' regs)
 
 demo :: IO ()
 demo = do
-    defs <- avrRegisterParser "iom328p.h"
-    putStrLn (unlines (map show (Vector.toList defs)))
+    raw <- TextIO.readFile "iom328p.h"
+    let parseResult = avrRegisterParser raw
+    case parseResult of
+        Left error -> print error
+        Right regs ->
+            putStrLn
+            $ unlines
+            $ map ppReg (Vector.toList regs)
     return ()
+  where
+    ppReg (Register (RegisterDecl regLabel regType regLocation) bits) =
+        unwords
+            [ show regLabel
+            , show regType
+            , show regLocation
+            , unwords (show <$> Map.toList bits)
+            ]
