@@ -120,10 +120,7 @@ demo = do
     let parseResult = avrRegisterParser raw
     case parseResult of
         Left error -> print error
-        Right regs ->
-            putStrLn
-            $ unlines
-            $ map ppReg (Vector.toList regs)
+        Right regs -> putStrLn (unlines (map ppReg (Vector.toList regs)))
     return ()
   where
     ppReg (Register (RegisterDecl regLabel regType regLocation) bits) =
