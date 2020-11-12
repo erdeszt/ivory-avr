@@ -114,6 +114,7 @@ avrRegisterParser rawInput = do
                 let phase' = RegBit reg bits'
                 Right (ParserState phase' regs)
 
+-- TODO: Align bits vertically
 generateIvoryForReg :: Register -> Text
 generateIvoryForReg (Register (RegisterDecl (Label regLabel) regType (Location regLocation)) bits) = do
     Text.unlines $
@@ -174,7 +175,7 @@ generateIvoryForReg (Register (RegisterDecl (Label regLabel) regType (Location r
         let sep = if bitIndex == lastBit then "{" else ","
         let bit = case Map.lookup (BitLocation bitIndex) bits of
                     Nothing -> "_ :: Bit"
-                    Just (Label bitLabel) -> Text.unwords [bitLabel, "::", "Bit"]
+                    Just (Label bitLabel) -> Text.unwords [Text.toLower bitLabel, "::", "Bit"]
         Text.append indent (Text.unwords [sep, bit])
 
 demo :: IO ()
@@ -184,8 +185,7 @@ demo = do
     case parseResult of
         Left error -> print error
         Right regs -> do
-            -- putStrLn (unlines (map ppReg (Vector.toList regs)))
-            TextIO.putStrLn (generateIvoryForReg (Vector.head regs))
+            TextIO.putStrLn (Text.unlines (map generateIvoryForReg (Vector.toList regs)))
     return ()
   where
     ppReg (Register (RegisterDecl regLabel regType regLocation) bits) =
