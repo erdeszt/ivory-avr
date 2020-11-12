@@ -114,13 +114,78 @@ avrRegisterParser rawInput = do
                 let phase' = RegBit reg bits'
                 Right (ParserState phase' regs)
 
+generateIvoryForReg :: Register -> Text
+generateIvoryForReg (Register (RegisterDecl (Label regLabel) regType (Location regLocation)) bits) = do
+    Text.unlines $
+        [ "[ivory|"
+        , Text.unwords
+            ["bitdata"
+            , regLabel
+            , "::"
+            , "Bits"
+            , Text.pack (show bitCount)
+            , "="
+            , Text.toLower regLabel
+            ]
+        ]
+        ++ map generateBit (reverse [0..lastBit])
+        ++ [ Text.append indent "}"
+           , "|]"
+           , ""
+           , Text.unwords [bitDataReg, "::", "BitDataReg", regLabel]
+           , Text.unwords [bitDataReg, "=", "mkBitDataReg", adjustedRegLocation]
+           , ""
+           , Text.unwords [dataReg, "::", "Reg", regIntType]
+           , Text.unwords [dataReg, "=", "mkReg", adjustedRegLocation]
+           ]
+  where
+    regIntType :: Text
+    regIntType =
+        case regType of
+            IO8   -> "Uint8"
+            IO16  -> "Uint16"
+            MEM8  -> "Uint8"
+            MEM16 -> "Uint16"
+    adjustedRegLocation :: Text
+    adjustedRegLocation =
+        Text.pack $ show $
+            case regType of
+                IO8   -> 0x20 + regLocation
+                IO16  -> 0x20 + regLocation
+                MEM8  -> regLocation
+                MEM16 -> regLocation
+    bitDataReg :: Text
+    bitDataReg = Text.append "regBits" regLabel
+    dataReg :: Text
+    dataReg = Text.append  "reg" regLabel
+    indent :: Text
+    indent = "  "
+    bitCount :: Int
+    bitCount =
+        case regType of
+            IO8   -> 8
+            IO16  -> 16
+            MEM8  -> 8
+            MEM16 -> 16
+    lastBit :: Int
+    lastBit = bitCount - 1
+    generateBit :: Int -> Text
+    generateBit bitIndex = do
+        let sep = if bitIndex == lastBit then "{" else ","
+        let bit = case Map.lookup (BitLocation bitIndex) bits of
+                    Nothing -> "_ :: Bit"
+                    Just (Label bitLabel) -> Text.unwords [bitLabel, "::", "Bit"]
+        Text.append indent (Text.unwords [sep, bit])
+
 demo :: IO ()
 demo = do
     raw <- TextIO.readFile "iom328p.h"
     let parseResult = avrRegisterParser raw
     case parseResult of
         Left error -> print error
-        Right regs -> putStrLn (unlines (map ppReg (Vector.toList regs)))
+        Right regs -> do
+            -- putStrLn (unlines (map ppReg (Vector.toList regs)))
+            TextIO.putStrLn (generateIvoryForReg (Vector.head regs))
     return ()
   where
     ppReg (Register (RegisterDecl regLabel regType regLocation) bits) =
