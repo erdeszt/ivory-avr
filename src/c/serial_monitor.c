@@ -162,6 +162,7 @@ const ssize_t serial_read_until( const int32_t device
     return -1;
 }
 
+// TODO: FIX!
 int main(int argc, char **argv) {
     if (argc < 2) {
         printf("Usage: serialmonitor COMX\n");

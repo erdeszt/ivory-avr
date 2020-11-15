@@ -5,10 +5,13 @@
 
 module Main where
 
+import Data.Char
+
 import Ivory.Compile.C.CmdlineFrontend ( runCompiler, initialOpts, Opts(outDir) )
 import Ivory.HW
 import Ivory.Language
 import Ivory.Language.Uint
+import Ivory.Stdlib.String
 import GHC.TypeNats ()
 
 import Blink ( blinkMain )
@@ -31,16 +34,25 @@ serialTxMain = proc "main" $ body $ do
         setBit udord0
         setBit ucpha0
     call_ delayInit
+    stringStore <- local helloStore
     forever $ do
-        writeReg regUDR0 72
+        arrayMap $ \ix -> do
+            currentChar <- deref (stringStore ! ix)
+            writeReg regUDR0 currentChar
+            -- TODO: Wait until UDR0 is 0
+            call_ delayMS 1
         call_ delayMS 1000
+  where
+    -- TODO: Fix the conversion so it doesn't hurt the eye
+    helloStore :: Init ('Array 6 ('Stored Uint8))
+    helloStore = iarray (map (ival . fromInteger . toInteger . ord) "Hello\n")
 
 mainModule :: Module
 mainModule = package "firmware" $ do
     hw_moduledef
     incl delayInit
     incl delayMS
-    incl blinkMain
+    incl serialTxMain
 
 
 main :: IO ()
