@@ -14,7 +14,6 @@ import GHC.TypeNats ()
 import Blink ( blinkMain )
 import Delay ( delayInit, delayMS )
 import Registers
-import AvrRegisterGenerator
 
 serialTxMain :: Def ('[] :-> ())
 serialTxMain = proc "main" $ body $ do
@@ -41,8 +40,7 @@ mainModule = package "firmware" $ do
     hw_moduledef
     incl delayInit
     incl delayMS
-    incl serialTxMain
-
+    incl blinkMain
 
 
 main :: IO ()

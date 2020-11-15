@@ -8,18 +8,18 @@ import Ivory.HW ( setReg )
 import Ivory.Language
 import GHC.TypeNats ()
 
-import Registers ( ddb1, portb1, regBitsDDRB, regBitsPORTB )
+import Registers
 import Delay ( delayInit, delayMS )
 
 blinkMain :: Def ('[] :-> ())
 blinkMain = proc "main" $ body $ do
     call_ delayInit
     setReg regBitsDDRB $ do
-        setBit ddb1
+        setBit ddb5
     forever $ do
         setReg regBitsPORTB $ do
-            setBit portb1
+            setBit portb5
         call_ delayMS 1000
         setReg regBitsPORTB $ do
-            clearBit portb1
+            clearBit portb5
         call_ delayMS 1000
