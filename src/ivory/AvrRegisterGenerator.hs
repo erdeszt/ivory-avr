@@ -10,8 +10,8 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as TextIO
 
-import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 
 import Data.Vector (Vector)
 import qualified Data.Vector as Vector
@@ -20,13 +20,16 @@ import Data.Char (isSpace)
 
 import Data.Attoparsec.Text
 
-newtype Label = Label Text
+newtype Label = Label { unLabel :: Text }
     deriving (Show, Eq)
 
 newtype Location = Location Int
     deriving (Show, Eq)
 
 newtype BitLocation = BitLocation Int
+    deriving (Show, Eq, Ord)
+
+newtype IOOffset = IOOffset Int
     deriving (Show, Eq, Ord)
 
 data RegType = IO8 | IO16 | MEM8 | MEM16
@@ -80,13 +83,17 @@ parseRegisterBitLocation = do
 parseDefinition :: Parser (Either RegisterDecl (Label, BitLocation))
 parseDefinition = (Left <$> parseRegisterDecl) <|> (Right <$> parseRegisterBitLocation)
 
+-- TODO: Figure out why UDR0 is missing
 -- NOTE: Everything after the first interrupt vector definition is ignored
 avrRegisterParser :: Text -> Either ParserError (Vector Register)
 avrRegisterParser rawInput = do
-    let lines = tail $ filter (Text.isPrefixOf "#define") (Text.lines rawInput)
+    -- Tail drops the header guard
+    let lines = tail $ filter definitionFilter (Text.lines rawInput)
     let parseResult = foldl' propagateParseErrors (Right (ParserState Skip Vector.empty)) lines
     registers <$> parseResult
   where
+    definitionFilter line =
+        Text.isPrefixOf "#define" line && not (Text.isInfixOf "_EEPROM_REG_LOCATIONS_" line)
     propagateParseErrors state line = state >>= (`parseLines` line)
     parseLines :: ParserState -> Text -> Either ParserError ParserState
     parseLines (ParserState phase regs) line = do
@@ -114,9 +121,9 @@ avrRegisterParser rawInput = do
                 let phase' = RegBit reg bits'
                 Right (ParserState phase' regs)
 
--- TODO: Align bits vertically
-generateIvoryForReg :: Register -> Text
-generateIvoryForReg (Register (RegisterDecl (Label regLabel) regType (Location regLocation)) bits) = do
+-- TODO: Improve duplicate resolution for OCR2(A|B) bits to match the C defs
+generateIvoryForReg :: IOOffset -> Register -> Text
+generateIvoryForReg (IOOffset iooffset) (Register (RegisterDecl (Label regLabel) regType (Location regLocation)) bits) = do
     Text.unlines $
         [ "[ivory|"
         , Text.unwords
@@ -140,6 +147,8 @@ generateIvoryForReg (Register (RegisterDecl (Label regLabel) regType (Location r
            , Text.unwords [dataReg, "=", "mkReg", adjustedRegLocation]
            ]
   where
+    showT :: (Show a) => a -> Text
+    showT = Text.pack . show
     regIntType :: Text
     regIntType =
         case regType of
@@ -149,12 +158,23 @@ generateIvoryForReg (Register (RegisterDecl (Label regLabel) regType (Location r
             MEM16 -> "Uint16"
     adjustedRegLocation :: Text
     adjustedRegLocation =
-        Text.pack $ show $
-            case regType of
-                IO8   -> 0x20 + regLocation
-                IO16  -> 0x20 + regLocation
-                MEM8  -> regLocation
-                MEM16 -> regLocation
+        case regType of
+            IO8   -> Text.unwords ["(", showT iooffset, "+", showT regLocation, ")"]
+            IO16  -> Text.unwords ["(", showT iooffset, "+", showT regLocation, ")"]
+            MEM8  -> showT regLocation
+            MEM16 -> showT regLocation
+    longestLabel :: Int
+    longestLabel = do
+        let labelLengths = (map (Text.length . unLabel) (Map.elems bits))
+        case labelLengths of
+            [] -> 1
+            _ -> maximum labelLengths
+    padTo :: Int -> Text -> Text
+    padTo desiredLength text = do
+        let textLength = Text.length text
+        if textLength >= desiredLength
+            then text
+            else text `Text.append` Text.replicate (desiredLength - textLength) " "
     bitDataReg :: Text
     bitDataReg = Text.append "regBits" regLabel
     dataReg :: Text
@@ -170,28 +190,30 @@ generateIvoryForReg (Register (RegisterDecl (Label regLabel) regType (Location r
             MEM16 -> 16
     lastBit :: Int
     lastBit = bitCount - 1
+    resolveDuplicate :: Text -> Text -> Text
+    resolveDuplicate regLabel bitLabel =
+        case regLabel of
+            "OCR2A" -> Text.snoc  bitLabel 'A'
+            "OCR2B" -> Text.snoc  bitLabel 'B'
+            _ -> bitLabel
     generateBit :: Int -> Text
     generateBit bitIndex = do
         let sep = if bitIndex == lastBit then "{" else ","
-        let bit = case Map.lookup (BitLocation bitIndex) bits of
-                    Nothing -> "_ :: Bit"
-                    Just (Label bitLabel) -> Text.unwords [Text.toLower bitLabel, "::", "Bit"]
-        Text.append indent (Text.unwords [sep, bit])
+        let bitLabel = case Map.lookup (BitLocation bitIndex) bits of
+                    Nothing ->  padTo longestLabel "_"
+                    Just (Label rawLabel) -> padTo longestLabel (Text.toLower (resolveDuplicate regLabel rawLabel))
+        Text.append indent (Text.unwords [sep, bitLabel, ":: Bit"])
+
 
 demo :: IO ()
 demo = do
     raw <- TextIO.readFile "iom328p.h"
+    let atmega328pIOOffset = IOOffset 0x20
     let parseResult = avrRegisterParser raw
     case parseResult of
         Left error -> print error
         Right regs -> do
-            TextIO.putStrLn (Text.unlines (map generateIvoryForReg (Vector.toList regs)))
+            TextIO.writeFile "atmega328pRegs.hs"
+            $ Text.unlines
+            $ map (generateIvoryForReg atmega328pIOOffset) (Vector.toList regs)
     return ()
-  where
-    ppReg (Register (RegisterDecl regLabel regType regLocation) bits) =
-        unwords
-            [ show regLabel
-            , show regType
-            , show regLocation
-            , unwords (show <$> Map.toList bits)
-            ]

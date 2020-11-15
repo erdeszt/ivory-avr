@@ -25,15 +25,15 @@ serialTxMain = proc "main" $ body $ do
     let bitrate = Uint16 103 -- (CPU_FREQ(=16MHZ) / 16 / BAUD(9600)) - 1
     let bitrate_h = bitCast @Uint16 @Uint8 ((bitrate `iShiftR` 8) .& 0xFF)
     let bitrate_l = bitCast @Uint16 @Uint8 (bitrate .& 0xFF)
-    writeReg reg_UBRR0H bitrate_h
-    writeReg reg_UBRR0L bitrate_l
-    setReg reg_UCSR0B (setBit txen0)
-    setReg reg_UCSR0C $ do
-        setBit ucsz01
-        setBit ucsz00
+    writeReg regUBRR0H bitrate_h
+    writeReg regUBRR0L bitrate_l
+    setReg regBitsUCSR0B (setBit txen0)
+    setReg regBitsUCSR0C $ do
+        setBit udord0
+        setBit ucpha0
     call_ delayInit
     forever $ do
-        writeReg reg_UDR0 72
+        writeReg regUDR0 72
         call_ delayMS 1000
 
 mainModule :: Module
@@ -48,8 +48,6 @@ mainModule = package "firmware" $ do
 main :: IO ()
 main = do
     runCompiler [mainModule] hw_artifacts options
-    -- registerDefs <- avrRegisterParser "iom328p.h"
-    -- TextIO.putStrLn (Text.unlines registerDefs)
     return ()
   where
     options = initialOpts
