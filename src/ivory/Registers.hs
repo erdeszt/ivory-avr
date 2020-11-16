@@ -1806,6 +1806,21 @@ regBitsUBRR0H = mkBitDataReg 197
 regUBRR0H :: Reg Uint8
 regUBRR0H = mkReg 197
 
--- TODO: Figure out why this is missing
+[ivory|
+bitdata UDR0 :: Bits 8 = udr0
+  { udr0_7 :: Bit
+  , udr0_6 :: Bit
+  , udr0_5 :: Bit
+  , udr0_4 :: Bit
+  , udr0_3 :: Bit
+  , udr0_2 :: Bit
+  , udr0_1 :: Bit
+  , udr0_0 :: Bit
+  }
+|]
+
+regBitsUDR0 :: BitDataReg UDR0
+regBitsUDR0 = mkBitDataReg 198
+
 regUDR0 :: Reg Uint8
 regUDR0 = mkReg 198

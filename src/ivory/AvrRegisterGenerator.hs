@@ -83,7 +83,6 @@ parseRegisterBitLocation = do
 parseDefinition :: Parser (Either RegisterDecl (Label, BitLocation))
 parseDefinition = (Left <$> parseRegisterDecl) <|> (Right <$> parseRegisterBitLocation)
 
--- TODO: Figure out why UDR0 is missing
 -- NOTE: Everything after the first interrupt vector definition is ignored
 avrRegisterParser :: Text -> Either ParserError (Vector Register)
 avrRegisterParser rawInput = do
@@ -99,6 +98,8 @@ avrRegisterParser rawInput = do
     parseLines (ParserState phase regs) line = do
         let parseResult = parseOnly parseDefinition line
         case (phase, parseResult, Text.isInfixOf "vect" line) of
+            (RegBit reg bits, _, True) ->
+                Right (ParserState End (Vector.snoc regs (Register reg bits)))
             (_, _, True) ->
                 Right (ParserState End regs)
             (End, _, _) ->
