@@ -122,7 +122,6 @@ avrRegisterParser rawInput = do
                 let phase' = RegBit reg bits'
                 Right (ParserState phase' regs)
 
--- TODO: Improve duplicate resolution for OCR2(A|B) bits to match the C defs
 generateIvoryForReg :: IOOffset -> Register -> Text
 generateIvoryForReg (IOOffset iooffset) (Register (RegisterDecl (Label regLabel) regType (Location regLocation)) bits) = do
     Text.unlines $
@@ -194,8 +193,8 @@ generateIvoryForReg (IOOffset iooffset) (Register (RegisterDecl (Label regLabel)
     resolveDuplicate :: Text -> Text -> Text
     resolveDuplicate regLabel bitLabel =
         case regLabel of
-            "OCR2A" -> Text.snoc  bitLabel 'A'
-            "OCR2B" -> Text.snoc  bitLabel 'B'
+            "OCR2A" -> Text.append bitLabel "_a"
+            "OCR2B" -> Text.append bitLabel "_b"
             _ -> bitLabel
     generateBit :: Int -> Text
     generateBit bitIndex = do

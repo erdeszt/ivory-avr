@@ -1515,14 +1515,14 @@ regTCNT2 = mkReg 178
 
 [ivory|
 bitdata OCR2A :: Bits 8 = ocr2a
-  { ocr2_7a :: Bit
-  , ocr2_6a :: Bit
-  , ocr2_5a :: Bit
-  , ocr2_4a :: Bit
-  , ocr2_3a :: Bit
-  , ocr2_2a :: Bit
-  , ocr2_1a :: Bit
-  , ocr2_0a :: Bit
+  { ocr2_7_a :: Bit
+  , ocr2_6_a :: Bit
+  , ocr2_5_a :: Bit
+  , ocr2_4_a :: Bit
+  , ocr2_3_a :: Bit
+  , ocr2_2_a :: Bit
+  , ocr2_1_a :: Bit
+  , ocr2_0_a :: Bit
   }
 |]
 
@@ -1534,14 +1534,14 @@ regOCR2A = mkReg 179
 
 [ivory|
 bitdata OCR2B :: Bits 8 = ocr2b
-  { ocr2_7b :: Bit
-  , ocr2_6b :: Bit
-  , ocr2_5b :: Bit
-  , ocr2_4b :: Bit
-  , ocr2_3b :: Bit
-  , ocr2_2b :: Bit
-  , ocr2_1b :: Bit
-  , ocr2_0b :: Bit
+  { ocr2_7_b :: Bit
+  , ocr2_6_b :: Bit
+  , ocr2_5_b :: Bit
+  , ocr2_4_b :: Bit
+  , ocr2_3_b :: Bit
+  , ocr2_2_b :: Bit
+  , ocr2_1_b :: Bit
+  , ocr2_0_b :: Bit
   }
 |]
 
@@ -1824,3 +1824,4 @@ regBitsUDR0 = mkBitDataReg 198
 
 regUDR0 :: Reg Uint8
 regUDR0 = mkReg 198
+
