@@ -23,7 +23,7 @@ import Ivory.Stdlib.String
 import GHC.TypeNats
 
 import Blink ( blinkMain )
-import Delay ( delayInit, delayMS , delayMSSafe )
+import Delay -- ( delayInit, delayMS , delayMSSafe, delayMS2, MaxDelay )
 import Ivory.Avr.Atmega328p.Registers
 
 panic :: ( BitData controlReg
@@ -41,10 +41,10 @@ panic (controlReg, controlBit) (reg, bit) = proc "panic" $ body $ do
 panicWithOnboardLed :: Def ('[] :-> ())
 panicWithOnboardLed = panic (regBitsPORTB, portb5) (regBitsDDRB, ddb5)
 
-newtype SafeIx (n :: Nat) = SafeIx { getSafeIx :: Ix n }
+-- newtype SafeIx (n :: Nat) = SafeIx { getSafeIx :: Ix n }
 
-toSafeIx :: (KnownNat n, KnownNat ix, n <= (ix - 1)) => Proxy n -> SafeIx ix
-toSafeIx proxy = SafeIx (fromInteger . toInteger $ natVal proxy)
+-- toSafeIx :: forall ix n. (KnownNat n, KnownNat ix, n <= (ix - 1)) => Proxy n -> SafeIx ix
+-- toSafeIx proxy = SafeIx (fromInteger . toInteger $ natVal proxy)
 
 serialTxMain :: Def ('[] :-> ())
 serialTxMain = proc "main" $ body $ do
@@ -70,7 +70,7 @@ serialTxMain = proc "main" $ body $ do
             writeReg regUDR0 currentChar
             -- TODO: Wait until UDR0 is 0
             call_ delayMS 1
-        call_ (delayMSSafe (Proxy @500))
+        call_ delayMS2 (toSafeIx @MaxDelay (Proxy @1000))
     call_ panicWithOnboardLed
   where
     helloStore :: Init ('Array 6 ('Stored Uint8))
@@ -81,8 +81,9 @@ mainModule = package "firmware" $ do
     hw_moduledef
     incl delayInit
     incl delayMS
+    incl delayMS2
     incl serialTxMain
-    incl (delayMSSafe (Proxy @500))
+    -- incl (delayMSSafe (Proxy @500))
     incl panicWithOnboardLed
 
 -- Blink the onboard led (pin13, ddrb 5) on the Arduino Uno/Nano as fast as possible

@@ -27,6 +27,7 @@ import Ivory.Language.Syntax (Expr(ExpVar))
 type MaxDelay = 1001
 type MaxWaitCount = 10001
 
+-- TODO CLEANUP
 type SafeIx (bound :: Nat) (n :: Nat) = (KnownNat n, KnownNat bound, n <= bound)
 
 newtype SafeIxT (n :: Nat) = SafeIxT { getSafeIx :: Expr }
@@ -34,7 +35,7 @@ newtype SafeIxT (n :: Nat) = SafeIxT { getSafeIx :: Expr }
 toIxT :: (KnownNat n) => SafeIxT n -> Ix n
 toIxT = wrapExpr . getSafeIx
 
-toSafeIx :: (KnownNat n, KnownNat ix, n <= (ix - 1)) => Proxy n -> SafeIxT ix
+toSafeIx :: forall ix n. (KnownNat n, KnownNat ix, n <= (ix - 1)) => Proxy n -> SafeIxT ix
 toSafeIx proxy = SafeIxT (fromInteger . toInteger $ natVal proxy)
 
 instance (KnownNat n) => IvoryType (SafeIxT n) where
@@ -48,10 +49,6 @@ instance (KnownNat n) => IvoryVar (SafeIxT n) where
 instance (KnownNat n) => IvoryExpr (SafeIxT n) where
     wrapExpr e | 0 /= fromTypeNat (aNat :: NatType n) = SafeIxT e
                | otherwise = error "cannot have an index with width 0"
-
--- instance (KnownNat n) => IvoryVar (SafeIxT n) where
---   wrapVar    =  wrapExpr . ExpVar
---   unwrapExpr = getIx
 
 delayInit :: Def ('[] :-> ())
 delayInit = proc "delay_init" $ body $ do
@@ -68,25 +65,16 @@ delayMS = proc "delay" $ \interval -> body $ do
     retVoid
   where
     maxLoopCount :: Ix MaxWaitCount
-    maxLoopCount = toLoopBound @MaxWaitCount (Proxy @10000)
+    maxLoopCount = 10000
 
 delayMS2 :: Def ('[SafeIxT MaxDelay] :-> ())
-delayMS2 = proc "delay" $ \interval -> body $ do
+delayMS2 = proc "delay2" $ \interval -> body $ do
     toIxT interval `times` \_ -> do
         writeReg regTCNT1 0
-        maxLoopCount `times` \_ -> do
+        toIxT maxLoopCount `times` \_ -> do
             counterValue <- readReg regTCNT1
             ifte_ (counterValue >=? 16000) breakOut (return ())
     retVoid
   where
-    maxLoopCount :: Ix MaxWaitCount
-    maxLoopCount = toLoopBound @MaxWaitCount (Proxy @10000)
-
-toLoopBound :: forall bound n. (SafeIx bound n) => Proxy n -> Ix bound
-toLoopBound = fromInteger . toInteger . natVal
-
-delayMSSafe :: SafeIx MaxDelay d => Proxy d -> Def ('[] :-> ())
-delayMSSafe interval =
-    let intervalNat = toInteger (natVal interval) in
-    proc ("delaySafe" ++ show intervalNat) $ body $ do
-        call_ delayMS (toLoopBound @MaxDelay interval)
+    maxLoopCount :: SafeIxT MaxWaitCount
+    maxLoopCount = toSafeIx @MaxWaitCount (Proxy @10000)
