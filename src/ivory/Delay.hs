@@ -4,6 +4,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Delay where
@@ -11,6 +12,7 @@ module Delay where
 import GHC.TypeNats
 
 import Ivory.Language
+import Ivory.Language.Syntax.Names
 
 import Ivory.HW ( setReg, readReg, writeReg )
 
@@ -25,6 +27,7 @@ delayInit = proc "delay_init" $ body $ do
     setReg regBitsTCCR1B (setBit cs10)
     retVoid
 
+
 delayMS :: Def ('[Ix MaxDelay] :-> ())
 delayMS = proc "delay" $ \interval -> body $ do
     interval `times` \_ -> do
@@ -37,15 +40,19 @@ delayMS = proc "delay" $ \interval -> body $ do
     maxLoopCount :: Ix 100000
     maxLoopCount = 10000
 
--- NOTE: Doesn't work because can't include it in module
--- delayMS :: SafeIx MaxDelay d => Proxy d -> Def ('[] :-> ())
--- delayMS interval = proc "delay" $ body $ do
---     (toLoopBound @MaxDelay interval) `times` \_ -> do
---         writeReg regTCNT1 0
---         maxLoopCount `times` \_ -> do
---             counterValue <- readReg regTCNT1
---             ifte_ (counterValue >=? 16000) breakOut (return ())
---     retVoid
---   where
---     maxLoopCount :: Ix 100000
---     maxLoopCount = 10000
+toLoopBound :: forall bound n. (KnownNat n, KnownNat bound) => Proxy n -> Ix bound
+toLoopBound = fromInteger . toInteger . natVal
+
+delayMSSafe :: SafeIx MaxDelay d => Proxy d -> Def ('[] :-> ())
+delayMSSafe interval =
+    let intervalNat = toInteger (natVal interval) in
+    proc ("delaySafe" ++ show intervalNat) $ body $ do
+    (toLoopBound @MaxDelay interval) `times` \_ -> do
+        writeReg regTCNT1 0
+        maxLoopCount `times` \_ -> do
+            counterValue <- readReg regTCNT1
+            ifte_ (counterValue >=? 16000) breakOut (return ())
+    retVoid
+  where
+    maxLoopCount :: Ix 100000
+    maxLoopCount = 10000
