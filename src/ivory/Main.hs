@@ -46,17 +46,6 @@ newtype SafeIx (n :: Nat) = SafeIx { getSafeIx :: Ix n }
 toSafeIx :: (KnownNat n, KnownNat ix, n <= (ix - 1)) => Proxy n -> SafeIx ix
 toSafeIx proxy = SafeIx (fromInteger . toInteger $ natVal proxy)
 
-testIx :: (KnownNat n, n <= 10) => Proxy n -> Ix 10
-testIx p = fromInteger . toInteger $ natVal p
-
-type MaxLoopCount = 10
-type MaxDelay = 20
-
-safeTimes :: forall bound n eff a. (KnownNat n, KnownNat bound, n <= (bound - 1)) => Proxy n -> (Ix bound -> Ivory (AllowBreak eff) a) -> Ivory eff ()
-safeTimes proxy body = do
-    let ix = fromInteger . toInteger $ natVal proxy
-    times ix body
-
 serialTxMain :: Def ('[] :-> ())
 serialTxMain = proc "main" $ body $ do
     -- TODO: Investigate if this is correct:
