@@ -47,12 +47,4 @@ delayMSSafe :: SafeIx MaxDelay d => Proxy d -> Def ('[] :-> ())
 delayMSSafe interval =
     let intervalNat = toInteger (natVal interval) in
     proc ("delaySafe" ++ show intervalNat) $ body $ do
-    (toLoopBound @MaxDelay interval) `times` \_ -> do
-        writeReg regTCNT1 0
-        maxLoopCount `times` \_ -> do
-            counterValue <- readReg regTCNT1
-            ifte_ (counterValue >=? 16000) breakOut (return ())
-    retVoid
-  where
-    maxLoopCount :: Ix 100000
-    maxLoopCount = 10000
+        call_ delayMS (toLoopBound @MaxDelay interval)
