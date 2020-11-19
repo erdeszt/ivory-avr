@@ -44,7 +44,6 @@ serialTxMain = proc "main" $ body $ do
             call_ delayMS 1
         call_ delayMS 1000
   where
-    -- TODO: Fix the conversion so it doesn't hurt the eye
     helloStore :: Init ('Array 6 ('Stored Uint8))
     helloStore = iarray (replicate 6 (ival 0))
 
