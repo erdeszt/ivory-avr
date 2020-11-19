@@ -7,7 +7,7 @@ import Ivory.Language
 
 import Ivory.HW ( setReg, readReg, writeReg )
 
-import Registers ( cs10, regBitsTCCR1B, regTCNT1 )
+import Ivory.Avr.Atmega328p.Registers
 
 delayInit :: Def ('[] :-> ())
 delayInit = proc "delay_init" $ body $ do

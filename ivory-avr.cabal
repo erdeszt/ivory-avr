@@ -24,6 +24,7 @@ executable ivory-avr
                      , ivory-hw
                      , ivory-artifact
                      , ivory-stdlib
+                     , ivory-avr-atmega328p-registers
                      , directory
                      , serialport
                      , text

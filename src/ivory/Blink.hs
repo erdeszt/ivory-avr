@@ -8,7 +8,7 @@ import Ivory.HW ( setReg )
 import Ivory.Language
 import GHC.TypeNats ()
 
-import Registers
+import Ivory.Avr.Atmega328p.Registers
 import Delay ( delayInit, delayMS )
 
 blinkMain :: Def ('[] :-> ())

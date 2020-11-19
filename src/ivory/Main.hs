@@ -16,7 +16,7 @@ import GHC.TypeNats ()
 
 import Blink ( blinkMain )
 import Delay ( delayInit, delayMS )
-import Registers
+import Ivory.Avr.Atmega328p.Registers
 
 serialTxMain :: Def ('[] :-> ())
 serialTxMain = proc "main" $ body $ do
@@ -35,6 +35,7 @@ serialTxMain = proc "main" $ body $ do
         setBit ucpha0
     call_ delayInit
     stringStore <- local helloStore
+    _ <- string_lit_array "Hello\n" stringStore
     forever $ do
         arrayMap $ \ix -> do
             currentChar <- deref (stringStore ! ix)
@@ -45,7 +46,7 @@ serialTxMain = proc "main" $ body $ do
   where
     -- TODO: Fix the conversion so it doesn't hurt the eye
     helloStore :: Init ('Array 6 ('Stored Uint8))
-    helloStore = iarray (map (ival . fromInteger . toInteger . ord) "Hello\n")
+    helloStore = iarray (replicate 6 (ival 0))
 
 mainModule :: Module
 mainModule = package "firmware" $ do
@@ -53,6 +54,15 @@ mainModule = package "firmware" $ do
     incl delayInit
     incl delayMS
     incl serialTxMain
+
+-- Blink the onboard led (pin13, ddrb 5) on the Arduino Uno/Nano as fast as possible
+rapidBlink :: Def ('[] :-> ())
+rapidBlink = proc "rapidBlink" $ body $ do
+    setReg regBitsDDRB (setBit ddb5)
+    forever $ do
+        setReg regBitsPORTB (setBit portb5)
+        setReg regBitsPORTB (clearBit portb5)
+
 
 
 main :: IO ()
