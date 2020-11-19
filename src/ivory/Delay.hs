@@ -19,6 +19,7 @@ import Ivory.HW ( setReg, readReg, writeReg )
 import Ivory.Avr.Atmega328p.Registers
 
 type MaxDelay = 1001
+type MaxWaitCount = 10001
 
 type SafeIx (bound :: Nat) (n :: Nat) = (KnownNat n, KnownNat bound, n <= bound)
 
@@ -26,7 +27,6 @@ delayInit :: Def ('[] :-> ())
 delayInit = proc "delay_init" $ body $ do
     setReg regBitsTCCR1B (setBit cs10)
     retVoid
-
 
 delayMS :: Def ('[Ix MaxDelay] :-> ())
 delayMS = proc "delay" $ \interval -> body $ do
@@ -37,10 +37,10 @@ delayMS = proc "delay" $ \interval -> body $ do
             ifte_ (counterValue >=? 16000) breakOut (return ())
     retVoid
   where
-    maxLoopCount :: Ix 100000
-    maxLoopCount = 10000
+    maxLoopCount :: Ix MaxWaitCount
+    maxLoopCount = toLoopBound @MaxWaitCount (Proxy @10000)
 
-toLoopBound :: forall bound n. (KnownNat n, KnownNat bound) => Proxy n -> Ix bound
+toLoopBound :: forall bound n. (SafeIx bound n) => Proxy n -> Ix bound
 toLoopBound = fromInteger . toInteger . natVal
 
 delayMSSafe :: SafeIx MaxDelay d => Proxy d -> Def ('[] :-> ())
