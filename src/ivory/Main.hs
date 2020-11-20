@@ -70,7 +70,7 @@ serialTxMain = proc "main" $ body $ do
             writeReg regUDR0 currentChar
             -- TODO: Wait until UDR0 is 0
             call_ delayMS 1
-        call_ delayMS2 (toSafeIx @MaxDelay (Proxy @1000))
+        call_ delayMS2 (toSafeIx (Proxy @1000))
     call_ panicWithOnboardLed
   where
     helloStore :: Init ('Array 6 ('Stored Uint8))

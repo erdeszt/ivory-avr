@@ -77,4 +77,4 @@ delayMS2 = proc "delay2" $ \interval -> body $ do
     retVoid
   where
     maxLoopCount :: SafeIxT MaxWaitCount
-    maxLoopCount = toSafeIx @MaxWaitCount (Proxy @10000)
+    maxLoopCount = toSafeIx (Proxy @10000)
