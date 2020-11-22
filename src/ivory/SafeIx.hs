@@ -10,12 +10,24 @@ module SafeIx
     , safeIx
     ) where
 
-import Ivory.Language (IvoryVar, IvoryType, Ix)
-import Ivory.Language.Type
-import Ivory.Language.Proxy
-import Ivory.Language.Syntax (Type(TyIndex), Expr(ExpVar))
-
 import GHC.TypeNats
+    ( KnownNat
+    , Nat
+    , type (-)
+    , type (<=)
+    , natVal
+    )
+import Ivory.Language (IvoryVar, IvoryType, Ix)
+import Ivory.Language.Proxy
+    ( Proxy (Proxy)
+    , fromTypeNat
+    )
+import Ivory.Language.Syntax (Type(TyIndex), Expr(ExpVar))
+import Ivory.Language.Type
+    ( IvoryExpr (wrapExpr)
+    , IvoryType (ivoryType)
+    , IvoryVar  (wrapVar, unwrapExpr)
+    )
 
 newtype SafeIx (n :: Nat) = SafeIx { getSafeIx :: Expr }
 
@@ -33,5 +45,5 @@ instance (KnownNat n) => IvoryVar (SafeIx n) where
     unwrapExpr = getSafeIx
 
 instance (KnownNat n) => IvoryExpr (SafeIx n) where
-    wrapExpr e | 0 /= fromTypeNat (aNat :: NatType n) = SafeIx e
+    wrapExpr e | 0 /= fromTypeNat (Proxy @n) = SafeIx e
                | otherwise = error "cannot have an index with width 0"

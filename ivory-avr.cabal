@@ -15,9 +15,9 @@ executable ivory-avr
   hs-source-dirs:      src/ivory
   main-is:             Main.hs
   default-language:    Haskell2010
-  other-modules:       Blink
-                     , Delay
-                     , Registers
+  other-modules:       Delay
+                     , Panic
+                     , SafeIx
   build-depends:       base >= 4.7 && < 5
                      , ivory
                      , ivory-backend-c

@@ -19,22 +19,24 @@ import Ivory.Language.Uint
 import Ivory.Stdlib.String
 import Ivory.Avr.Atmega328p.Registers
 import Delay -- ( delayInit, delayMS , delayMSSafe, delayMS2, MaxDelay )
+import Panic
 import SafeIx
 
-panic :: ( BitData controlReg
-         , IvoryIOReg (BitDataRep controlReg)
-         , BitData reg
-         , IvoryIOReg (BitDataRep reg)
-         ) => (BitDataReg controlReg, BitDataField controlReg Bit)
-           -> (BitDataReg reg, BitDataField reg Bit)
-           -> Def ('[] :-> ())
-panic (controlReg, controlBit) (reg, bit) = proc "panic" $ body $ do
-    setReg controlReg (setBit controlBit)
-    setReg reg (setBit bit)
-    forever (return ())
+delay :: Def ('[SafeIx MaxDelay] ':-> ())
+delay = delayMS panicWithOnboardLed
 
-panicWithOnboardLed :: Def ('[] :-> ())
-panicWithOnboardLed = panic (regBitsPORTB, portb5) (regBitsDDRB, ddb5)
+blinkMain :: Def ('[] :-> ())
+blinkMain = proc "main" $ body $ do
+    call_ delayInit
+    setReg regBitsDDRB $ do
+        setBit ddb5
+    forever $ do
+        setReg regBitsPORTB $ do
+            setBit portb5
+        call_ delay (safeIx (Proxy @1000))
+        setReg regBitsPORTB $ do
+            clearBit portb5
+        call_ delay (safeIx (Proxy @1000))
 
 serialTxMain :: Def ('[] :-> ())
 serialTxMain = proc "main" $ body $ do
@@ -59,8 +61,8 @@ serialTxMain = proc "main" $ body $ do
             currentChar <- deref (stringStore ! ix)
             writeReg regUDR0 currentChar
             -- TODO: Wait until UDR0 is 0
-            call_ delayMS (safeIx (Proxy @1))
-        call_ delayMS (safeIx (Proxy @1000))
+            call_ delay (safeIx (Proxy @1))
+        call_ delay (safeIx (Proxy @1000))
     call_ panicWithOnboardLed
   where
     helloStore :: Init ('Array 6 ('Stored Uint8))
@@ -70,7 +72,7 @@ mainModule :: Module
 mainModule = package "firmware" $ do
     hw_moduledef
     incl delayInit
-    incl delayMS
+    incl delay
     incl serialTxMain
     incl panicWithOnboardLed
 
