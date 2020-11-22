@@ -11,6 +11,7 @@ import GHC.TypeNats ()
 
 import Ivory.Avr.Atmega328p.Registers
 import Delay ( delayInit, delayMS )
+import SafeIx
 
 blinkMain :: Def ('[] :-> ())
 blinkMain = proc "main" $ body $ do
@@ -20,7 +21,7 @@ blinkMain = proc "main" $ body $ do
     forever $ do
         setReg regBitsPORTB $ do
             setBit portb5
-        call_ delayMS 1000
+        call_ delayMS (safeIx (Proxy @1000))
         setReg regBitsPORTB $ do
             clearBit portb5
-        call_ delayMS 1000
+        call_ delayMS (safeIx (Proxy @1000))
