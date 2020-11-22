@@ -30,10 +30,10 @@ delayMS :: Def ('[SafeIx MaxDelay] :-> ())
 delayMS = proc "delay" $ \interval -> body $ do
     toIvoryIx interval `times` \_ -> do
         writeReg regTCNT1 0
-        maxLoopCount `times` \_ -> do
+        toIvoryIx maxLoopCount `times` \_ -> do
             counterValue <- readReg regTCNT1
             ifte_ (counterValue >=? 16000) breakOut (return ())
     retVoid
   where
-    maxLoopCount :: Ix MaxWaitCount
-    maxLoopCount = 10000
+    maxLoopCount :: SafeIx MaxWaitCount
+    maxLoopCount = safeIx (Proxy @10000)

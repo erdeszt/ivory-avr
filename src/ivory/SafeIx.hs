@@ -32,7 +32,6 @@ instance (KnownNat n) => IvoryVar (SafeIx n) where
     wrapVar = wrapExpr . ExpVar
     unwrapExpr = getSafeIx
 
-
 instance (KnownNat n) => IvoryExpr (SafeIx n) where
     wrapExpr e | 0 /= fromTypeNat (aNat :: NatType n) = SafeIx e
                | otherwise = error "cannot have an index with width 0"

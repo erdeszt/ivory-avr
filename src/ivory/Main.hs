@@ -36,11 +36,6 @@ panic (controlReg, controlBit) (reg, bit) = proc "panic" $ body $ do
 panicWithOnboardLed :: Def ('[] :-> ())
 panicWithOnboardLed = panic (regBitsPORTB, portb5) (regBitsDDRB, ddb5)
 
--- newtype SafeIx (n :: Nat) = SafeIx { getSafeIx :: Ix n }
-
--- toSafeIx :: forall ix n. (KnownNat n, KnownNat ix, n <= (ix - 1)) => Proxy n -> SafeIx ix
--- toSafeIx proxy = SafeIx (fromInteger . toInteger $ natVal proxy)
-
 serialTxMain :: Def ('[] :-> ())
 serialTxMain = proc "main" $ body $ do
     -- TODO: Investigate if this is correct:
